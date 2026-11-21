@@ -238,3 +238,5 @@ GNU General Public License v3.0
 新增 SEND_USER_DAILY_LIMIT=10、SEND_GLOBAL_DAILY_LIMIT=100，可用环境变量调整。用户额度跨邮箱共用；发送尝试（包括服务商失败）扣减额度，UTC 零点重置。原有邮箱/IP 分钟限速保留，邮箱分钟限速也用于用户。额度在 Durable Objects 中原子预留，达到上限后不会请求邮件服务商。
 
 部署前应用 0006_outbound_logs.sql（自动部署脚本会执行迁移）。用户在 /dashboard/outbound 查看自己的邮件，管理员在 /dashboard/admin/outbound 查看全站发件并按用户筛选。保存主题、正文、收发地址与结果，保留 30 天，每小时清理过期记录。HTML 正文隔离显示且不加载远程资源。成功仅表示服务商已接收；处理中也可能表示结果未确认，请勿自动重发。
+
+<!-- deploy: 2026-11-21T15:01:36.937Z -->
