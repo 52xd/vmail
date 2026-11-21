@@ -533,7 +533,19 @@ export default {
   async email(message: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
     try {
       if (env.SUSPEND_DATABASE_ACCESS === 'true' || message.rawSize > positive(env.MAX_EMAIL_BYTES, 262144)) { message.setReject('Mailbox unavailable or message too large'); return; }
-      const ledger = env.ACCESS.getByName('mailbox:' + message.to.toLowerCase());
+      const __host = message.to.slice(message.to.lastIndexOf('@') + 1).toLowerCase();
+      const __domains = String(env.EMAIL_DOMAIN || '').split(',').map((x) => x.trim()).filter(Boolean);
+      const __match = __domains.find((d) => {
+        try {
+          return d.toLowerCase() === __host || new URL('http://' + d).hostname === __host;
+        } catch {
+          return false;
+        }
+      });
+      const __to = __match && __match.toLowerCase() !== __host
+        ? message.to.slice(0, message.to.lastIndexOf('@') + 1) + __match.toLowerCase()
+        : message.to.toLowerCase();
+      const ledger = env.ACCESS.getByName('mailbox:' + __to);
       if (!await ledger.acceptMail(positive(env.MAILBOX_INBOUND_DAILY_LIMIT, 100))) { message.setReject('Mailbox expired or receiving limit reached'); return; }
       if (!(await globalBudget(env, message.to.toLowerCase(), 'inbound')).allowed) { message.setReject('Daily receiving capacity reached'); return; }
       const owner = await ledger.mailboxOwner();
