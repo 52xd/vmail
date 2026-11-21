@@ -533,19 +533,24 @@ export default {
   async email(message: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
     try {
       if (env.SUSPEND_DATABASE_ACCESS === 'true' || message.rawSize > positive(env.MAX_EMAIL_BYTES, 262144)) { message.setReject('Mailbox unavailable or message too large'); return; }
-      const __host = message.to.slice(message.to.lastIndexOf('@') + 1).toLowerCase();
+      const __at = message.to.lastIndexOf('@');
+      const __local = message.to.slice(0, __at + 1).toLowerCase();
+      const __host = message.to.slice(__at + 1).toLowerCase();
       const __domains: string[] = String(env.EMAIL_DOMAIN || '').split(',').map((x) => x.trim()).filter(Boolean);
-      const __match = __domains.find((d) => {
-        try {
-          return d.toLowerCase() === __host || new URL('http://' + d).hostname === __host;
-        } catch {
-          return false;
-        }
-      });
-      const __to = __match && __match.toLowerCase() !== __host
-        ? message.to.slice(0, message.to.lastIndexOf('@') + 1) + __match.toLowerCase()
-        : message.to.toLowerCase();
-      const ledger = env.ACCESS.getByName('mailbox:' + __to);
+      const __cands: string[] = [];
+      for (const d of __domains) {
+        let ascii = d.toLowerCase();
+        try { ascii = new URL('http://' + d).hostname.toLowerCase(); } catch {}
+        for (const form of [ascii, d.toLowerCase()]) if (!__cands.includes(form)) __cands.push(form);
+      }
+      if (!__cands.includes(__host)) __cands.unshift(__host);
+      let ledger: any = null;
+      let __resolvedTo = '';
+      for (const c of __cands) {
+        const cand = env.ACCESS.getByName('mailbox:' + __local + c);
+        if (await cand.mailboxActive()) { ledger = cand; __resolvedTo = __local + c; break; }
+      }
+      if (!ledger) { message.setReject('Mailbox unavailable'); return; }
       if (!await ledger.acceptMail(positive(env.MAILBOX_INBOUND_DAILY_LIMIT, 100))) { message.setReject('Mailbox expired or receiving limit reached'); return; }
       if (!(await globalBudget(env, message.to.toLowerCase(), 'inbound')).allowed) { message.setReject('Daily receiving capacity reached'); return; }
       const owner = await ledger.mailboxOwner();
@@ -562,7 +567,7 @@ export default {
       const newEmail = {
         id: nanoid(),
         messageFrom: message.from,
-        messageTo: message.to,
+        messageTo: __resolvedTo,
         headers: mail.headers || [], // 确保 headers 存在
         from: mail.from,
         sender: mail.sender,
@@ -588,7 +593,7 @@ export default {
       // 插入数据库
       await insertEmail(db, email);
       // 增加邮件接收计数
-      await recordMailboxUsage(env, owner, message.to, 'emails_received');
+      await recordMailboxUsage(env, owner, __resolvedTo, 'emails_received');
     } catch (e: any) {
       // **关键修复**：向 Cloudflare 发出拒绝信号
       // 当发生任何错误时，调用 message.setReject() 告知 Cloudflare 处理失败。
