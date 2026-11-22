@@ -8,7 +8,6 @@ import { Privacy } from "../pages/Privacy";
 import { Terms } from "../pages/Terms";
 import { Icon } from "../dashboard/Icon";
 import "./header.css";
-import { useConfig } from "../hooks/useConfig";
 // 支持的语言列表
 const languages = [
   { code: "zh", name: "简体中文", flag: "🇨🇳" },
@@ -25,7 +24,6 @@ const languages = [
 ];
 
 export function Header() {
-  const config = useConfig();
   const { t, i18n } = useTranslation(),
     zh = i18n.language.startsWith("zh"),
     [about, setAbout] = useState(false),
@@ -71,6 +69,13 @@ export function Header() {
                 <button onClick={() => setAbout(true)}>{t("About")}</button>
                 <button onClick={() => setPrivacy(true)}>{t("Privacy")}</button>
                 <button onClick={() => setTerms(true)}>{t("Terms")}</button>
+                <a
+                  href="https://github.com/oiov/vmail"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  GitHub ↗
+                </a>
               </div>
             </details>
           </nav>
@@ -91,7 +96,6 @@ export function Header() {
               ))}
             </select>
             <AccountButton />
-            {config?.showAff && (
             <a
               className="public-github-star"
               href="https://github.com/oiov/vmail"
@@ -105,7 +109,6 @@ export function Header() {
               <img src="/brand/github.svg" width="18" height="18" alt="" />
               <span>Star</span>
             </a>
-            )}
           </div>
         </div>
       </header>
