@@ -3,14 +3,11 @@ import Twitter from "./icons/Twitter.tsx";
 import GitHub from "./icons/GitHub.tsx";
 import MailIcon from "./icons/MailIcon.tsx";
 import WrdoLogo from "./icons/Wrdo.tsx";
-import { useConfig } from "../hooks/useConfig";
 
 /**
  * 网站的页脚组件
  */
 export function Footer() {
-  const config = useConfig();
-  if (!config?.showAff) return null;
   return (
     <div className="public-footer text-white w-full mt-auto flex flex-col items-center justify-between px-5 pt-16 mb-10 md:px-10 mx-auto sm:flex-row">
       <Link to="/" className="text-xl font-black leading-none select-none logo">
