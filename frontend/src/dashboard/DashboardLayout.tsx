@@ -251,6 +251,13 @@ export function DashboardLayout() {
           <span>
             Vmail · {zh ? "开源临时邮件服务" : "Open-source temporary email"}
           </span>
+          <a
+            href="https://github.com/oiov/vmail"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub ↗
+          </a>
         </footer>
       </div>
     </div>
