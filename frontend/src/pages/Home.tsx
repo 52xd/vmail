@@ -524,8 +524,6 @@ export function Home() {
             </button>
           )}
           <div className="flex flex-col gap-4 text-sm text-gray-200">
-            {config.showAff && (
-            <>
             <a
               href="https://github.com/oiov/vmail"
               target="_blank"
@@ -538,8 +536,6 @@ export function Home() {
               <ServerIcon className="size-5 text-blue-400" />
               {t("Stable - 1M+ emails processed")}
             </div>
-            </>
-            )}
             <Link
               to="/api-docs"
               className="flex items-center after:content-['↗'] gap-1.5 hover:text-cyan-400 transition-colors cursor-pointer">
